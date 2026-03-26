@@ -322,6 +322,7 @@ function App() {
         onReset={resetData} 
         showReset={showResults}
         onTokenClick={() => setShowTokenModal(true)}
+        onRemoveToken={handleRemoveToken}
         hasToken={!!accessToken}
       />
 

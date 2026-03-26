@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Navbar({ onReset, showReset, onTokenClick, hasToken }) {
+function Navbar({ onReset, showReset, onTokenClick, onRemoveToken, hasToken }) {
   return (
     <nav className="bg-white shadow-sm border-b border-slate-200 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,6 +24,15 @@ function Navbar({ onReset, showReset, onTokenClick, hasToken }) {
             >
               {hasToken ? '✓ API Token' : '+ Add Token'}
             </button>
+
+            {hasToken && (
+              <button
+                onClick={onRemoveToken}
+                className="px-3 py-1.5 md:px-4 md:py-2 bg-amber-100 text-amber-700 font-medium rounded-lg text-sm hover:bg-amber-200 transition"
+              >
+                Remove Token
+              </button>
+            )}
 
             {showReset && (
               <button

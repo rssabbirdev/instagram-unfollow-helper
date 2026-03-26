@@ -1,25 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-function UserCard({ user, onMarkUnfollowed, mode = 'queue', apiService }) {
-  const [profilePictureUrl, setProfilePictureUrl] = useState(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
-
+function UserCard({ user, onMarkUnfollowed, mode = 'queue' }) {
   const canMarkUnfollowed = typeof onMarkUnfollowed === 'function' && mode === 'queue';
 
-  // Try to fetch real profile picture from Instagram API if available
-  useEffect(() => {
-    if (!apiService) return;
-
-    setIsLoadingImage(true);
-
-    // Try to fetch from Instagram Graph API
-    // This would require the username to be mapped to a user ID
-    // For now, we'll use a fallback approach
-    setIsLoadingImage(false);
-  }, [apiService, user.username]);
-
-  // Use real picture if available, otherwise fallback to placeholder
-  const avatarUrl = profilePictureUrl || `https://ui-avatars.com/api/?name=${user.username}&background=random&color=fff&size=128`;
+  // Fallback placeholder avatar until real API photo resolution is implemented
+  const avatarUrl = `https://ui-avatars.com/api/?name=${user.username}&background=random&color=fff&size=128`;
 
   const handleCardClick = (e) => {
     // Prevent card click when clicking on buttons/links
