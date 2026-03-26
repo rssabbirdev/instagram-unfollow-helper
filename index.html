@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Follower Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800 flex flex-col overflow-hidden">
+
+    <nav class="bg-white shadow-sm border-b border-slate-200 flex-shrink-0 relative z-20">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span
+                        class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                        Follower Tracker
+                    </span>
+                </div>
+                <button id="resetBtn" onclick="resetData()"
+                    class="hidden px-3 py-1.5 md:px-4 md:py-2 bg-rose-100 text-rose-700 font-medium rounded-lg text-sm hover:bg-rose-200 transition">
+                    Reset Data
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center p-3 md:p-6 lg:p-8 overflow-y-auto custom-scrollbar">
+
+        <div id="uploadView"
+            class="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden mt-4 md:mt-8 transition-all flex-shrink-0">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 md:p-8 text-white text-center">
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">Analyze Your Network</h1>
+                <p class="text-blue-100 text-sm md:text-base">Upload your data to see who doesn't follow you back.</p>
+            </div>
+            <div class="p-6 md:p-8 space-y-6">
+                <div class="flex flex-col">
+                    <label class="font-semibold text-slate-700 mb-2">1. Followers List (followers_1.json)</label>
+                    <label
+                        class="flex flex-col items-center justify-center w-full h-28 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <p class="mb-1 text-sm text-slate-500"><span class="font-semibold">Click to upload</span>
+                            </p>
+                            <p id="followersFileName" class="text-xs text-indigo-600 font-medium"></p>
+                        </div>
+                        <input type="file" id="followersFile" accept=".json" class="hidden"
+                            onchange="updateFileName('followersFile', 'followersFileName')" />
+                    </label>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="font-semibold text-slate-700 mb-2">2. Following List (following.json)</label>
+                    <label
+                        class="flex flex-col items-center justify-center w-full h-28 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <p class="mb-1 text-sm text-slate-500"><span class="font-semibold">Click to upload</span>
+                            </p>
+                            <p id="followingFileName" class="text-xs text-indigo-600 font-medium"></p>
+                        </div>
+                        <input type="file" id="followingFile" accept=".json" class="hidden"
+                            onchange="updateFileName('followingFile', 'followingFileName')" />
+                    </label>
+                </div>
+
+                <button onclick="processFiles()" id="compareBtn"
+                    class="w-full px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition">
+                    Extract & Compare
+                </button>
+                <div id="errorMsg" class="text-center text-red-500 font-medium hidden"></div>
+            </div>
+        </div>
+
+        <div id="resultsView"
+            class="hidden w-full max-w-screen-2xl mx-auto flex-grow flex flex-col lg:flex-row gap-6 h-full pb-4 mt-2">
+
+            <div class="flex-grow flex flex-col min-h-0 lg:w-2/3">
+                <div class="flex justify-between items-end mb-3 border-b border-slate-200 pb-2 flex-shrink-0">
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">Queue</h2>
+                    <span id="queueCount"
+                        class="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full">0</span>
+                </div>
+
+                <div id="resultsGrid"
+                    class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto max-h-[50vh] lg:max-h-[75vh] custom-scrollbar pr-2 content-start pb-4">
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/3 xl:w-96 flex-shrink-0 flex flex-col min-h-0">
+                <div class="flex justify-between items-end mb-3 border-b border-slate-200 pb-2 flex-shrink-0">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        Unfollowed
+                    </h2>
+                    <span id="unfollowedCount" class="text-slate-500 text-sm font-semibold">0</span>
+                </div>
+
+                <div
+                    class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 flex-grow overflow-y-auto max-h-[40vh] lg:max-h-[75vh] custom-scrollbar">
+                    <div id="sidebarList" class="flex flex-col gap-2">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // State Management
+        let queueList = [];
+        let unfollowedList = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedQueue = localStorage.getItem("instaQueue");
+            const savedUnfollowed = localStorage.getItem("instaUnfollowed");
+
+            if (savedQueue || savedUnfollowed) {
+                // Apply strict clean link formatting when loading from storage
+                queueList = savedQueue ? JSON.parse(savedQueue).map(formatUser) : [];
+                unfollowedList = savedUnfollowed ? JSON.parse(savedUnfollowed).map(formatUser) : [];
+                renderAll();
+                toggleViews(true);
+            }
+        });
+
+        // Helper to ensure clean links are always used
+        function formatUser(user) {
+            return {
+                username: user.username,
+                appLink: `instagram://user?username=${user.username}`,
+                webLink: `https://www.instagram.com/${user.username}`
+            };
+        }
+
+        function updateFileName(inputId, textId) {
+            const input = document.getElementById(inputId);
+            document.getElementById(textId).textContent = input.files.length > 0 ? input.files[0].name : "";
+        }
+
+        function toggleViews(showResults) {
+            document.getElementById('uploadView').classList.toggle('hidden', showResults);
+            document.getElementById('resultsView').classList.toggle('hidden', !showResults);
+            document.getElementById('resetBtn').classList.toggle('hidden', !showResults);
+
+            if (showResults && window.innerWidth >= 1024) {
+                document.body.classList.add('overflow-hidden');
+            } else {
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function resetData() {
+            if (!confirm("Clear all data and start over?")) return;
+
+            localStorage.removeItem("instaQueue");
+            localStorage.removeItem("instaUnfollowed");
+            queueList = [];
+            unfollowedList = [];
+
+            document.getElementById('followersFile').value = '';
+            document.getElementById('followingFile').value = '';
+            document.getElementById('followersFileName').textContent = '';
+            document.getElementById('followingFileName').textContent = '';
+            document.getElementById('errorMsg').classList.add('hidden');
+
+            toggleViews(false);
+        }
+
+        function saveState() {
+            localStorage.setItem("instaQueue", JSON.stringify(queueList));
+            localStorage.setItem("instaUnfollowed", JSON.stringify(unfollowedList));
+        }
+
+        async function processFiles() {
+            const followersFile = document.getElementById('followersFile').files[0];
+            const followingFile = document.getElementById('followingFile').files[0];
+            const errorMsg = document.getElementById('errorMsg');
+            const btn = document.getElementById('compareBtn');
+
+            errorMsg.classList.add('hidden');
+
+            if (!followersFile || !followingFile) {
+                errorMsg.textContent = "Please upload both JSON files.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            btn.textContent = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const followersData = JSON.parse(await followersFile.text());
+                const followingData = JSON.parse(await followingFile.text());
+
+                const followerSet = new Set();
+                followersData.forEach(item => {
+                    if (item.string_list_data && item.string_list_data[0]) {
+                        followerSet.add(item.string_list_data[0].value);
+                    }
+                });
+
+                const notFollowingBack = followingData.relationships_following.filter(item => {
+                    const username = item.title || (item.string_list_data && item.string_list_data[0] ? item.string_list_data[0].value : null);
+                    if (!username) return false;
+                    return !followerSet.has(username);
+                }).map(item => {
+                    const username = item.title || item.string_list_data[0].value;
+                    // Force clean URLs instead of relying on Instagram's internal data format
+                    return formatUser({ username });
+                });
+
+                queueList = notFollowingBack.filter(user => !unfollowedList.some(u => u.username === user.username));
+
+                saveState();
+                renderAll();
+                toggleViews(true);
+
+            } catch (e) {
+                errorMsg.textContent = "Error parsing files. Ensure they are the correct JSON format.";
+                errorMsg.classList.remove('hidden');
+                console.error(e);
+            } finally {
+                btn.textContent = "Extract & Compare";
+                btn.disabled = false;
+            }
+        }
+
+        function markAsUnfollowed(username) {
+            const index = queueList.findIndex(u => u.username === username);
+            if (index > -1) {
+                const user = queueList.splice(index, 1)[0];
+                unfollowedList.unshift(user);
+                saveState();
+                renderAll();
+            }
+        }
+
+        function restoreToQueue(username) {
+            const index = unfollowedList.findIndex(u => u.username === username);
+            if (index > -1) {
+                const user = unfollowedList.splice(index, 1)[0];
+                queueList.unshift(user);
+                saveState();
+                renderAll();
+            }
+        }
+
+        function renderAll() {
+            renderQueue();
+            renderSidebar();
+        }
+
+        function renderQueue() {
+            const resultsGrid = document.getElementById('resultsGrid');
+            document.getElementById('queueCount').textContent = queueList.length;
+            resultsGrid.innerHTML = '';
+
+            if (queueList.length === 0) {
+                resultsGrid.innerHTML = `<div class="col-span-full p-6 md:p-8 text-center text-slate-500 bg-white rounded-xl shadow border border-slate-100">No accounts left in the queue! 🎉</div>`;
+                return;
+            }
+
+            queueList.forEach(user => {
+                const avatarUrl = `https://ui-avatars.com/api/?name=${user.username}&background=random&color=fff&size=128`;
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 p-3 md:p-4 flex flex-col items-center hover:shadow-md transition';
+
+                card.innerHTML = `
+                    <img src="${avatarUrl}" alt="${user.username}" class="w-12 h-12 md:w-16 md:h-16 rounded-full mb-2 md:mb-3 shadow-sm border-2 border-slate-50">
+                    <span class="font-bold text-slate-800 text-sm md:text-base mb-3 truncate w-full text-center" title="${user.username}">${user.username}</span>
+                    
+                    <div class="w-full flex flex-col gap-1.5 mt-auto md:hidden">
+                        <a href="${user.appLink}" 
+                           onclick="markAsUnfollowed('${user.username}')"
+                           class="w-full py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-semibold rounded-lg text-xs transition text-center flex justify-center items-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                            App
+                        </a>
+                        <a href="${user.webLink}" target="_blank" rel="noopener noreferrer" 
+                           onclick="markAsUnfollowed('${user.username}')"
+                           class="w-full text-[10px] text-slate-400 hover:text-slate-600 underline text-center">
+                            Web
+                        </a>
+                    </div>
+
+                    <div class="w-full mt-auto hidden md:block">
+                        <a href="${user.webLink}" target="_blank" rel="noopener noreferrer" 
+                           onclick="markAsUnfollowed('${user.username}')"
+                           class="w-full py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-semibold rounded-lg text-sm transition text-center block">
+                            Open Profile
+                        </a>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        function renderSidebar() {
+            const sidebarList = document.getElementById('sidebarList');
+            document.getElementById('unfollowedCount').textContent = unfollowedList.length;
+            sidebarList.innerHTML = '';
+
+            if (unfollowedList.length === 0) {
+                sidebarList.innerHTML = `<div class="p-4 text-center text-xs md:text-sm text-slate-400">No accounts unfollowed yet.</div>`;
+                return;
+            }
+
+            unfollowedList.forEach(user => {
+                const avatarUrl = `https://ui-avatars.com/api/?name=${user.username}&background=f1f5f9&color=64748b&size=64`;
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg transition border border-transparent hover:border-slate-100 group';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 md:gap-3 overflow-hidden">
+                        <img src="${avatarUrl}" class="w-6 h-6 md:w-8 md:h-8 rounded-full grayscale opacity-70">
+                        <span class="text-xs md:text-sm font-medium text-slate-600 truncate opacity-70 line-through decoration-slate-300" title="${user.username}">${user.username}</span>
+                    </div>
+                    <button onclick="restoreToQueue('${user.username}')" 
+                            class="text-[10px] md:text-xs px-2 py-1 text-slate-400 bg-white border border-slate-200 rounded hover:bg-slate-100 hover:text-slate-700 transition lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100">
+                        Undo
+                    </button>
+                `;
+                sidebarList.appendChild(item);
+            });
+        }
+    </script>
+</body>
+
+</html>
