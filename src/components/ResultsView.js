@@ -111,9 +111,9 @@ function ResultsView({
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden px-2 md:px-4">
           {activeTab === 'not_following_back' ? (
-            <div className="w-full h-full flex flex-col lg:flex-row gap-6 pb-4 mt-2 min-h-0 overflow-hidden">
+            <div className="w-full h-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden">
               <div className="flex-1 flex flex-col lg:w-2/3 min-h-0">
                 <QueueGrid queueList={queueList} onMarkUnfollowed={onMarkUnfollowed} apiService={apiService} />
               </div>
@@ -123,7 +123,7 @@ function ResultsView({
               </div>
             </div>
           ) : activeTab === 'pending_requests' ? (
-            <div className="w-full h-full flex flex-col lg:flex-row gap-6 pb-4 mt-2 min-h-0 overflow-hidden">
+            <div className="w-full h-full flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden">
               <div className="flex-1 flex flex-col lg:w-2/3 min-h-0">
                 <PendingRequestsGrid pendingRequestsList={pendingRequestsList} onMarkAsHandled={onMarkAsHandled} apiService={apiService} />
               </div>
@@ -133,18 +133,20 @@ function ResultsView({
               </div>
             </div>
           ) : (
-            <div className="w-full h-full flex flex-col mt-2 min-h-0 overflow-hidden">
+            <div className="w-full h-full flex flex-col min-h-0 overflow-hidden">
               {(() => {
                 const cfg = insightConfig();
                 return (
                   <>
-                    <div className="flex justify-between items-end mb-3 border-b border-slate-200 pb-2 flex-shrink-0 px-1">
+                    <div className="flex justify-between items-end mb-2 border-b border-slate-200 pb-2 flex-shrink-0">
                       <h2 className="text-xl md:text-2xl font-bold text-slate-800">{cfg.title}</h2>
                       <span className="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full">
                         {cfg.count}
                       </span>
                     </div>
-                    <InsightGrid users={cfg.list} resetKey={activeTab} apiService={apiService} />
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                      <InsightGrid users={cfg.list} resetKey={activeTab} apiService={apiService} />
+                    </div>
                   </>
                 );
               })()}

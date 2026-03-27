@@ -35,11 +35,16 @@ function UserCard({ user, onMarkUnfollowed, mode = 'queue' }) {
         className="w-12 h-12 md:w-16 md:h-16 rounded-full mb-2 md:mb-3 shadow-sm border-2 border-slate-50"
       />
       <span
-        className="font-bold text-slate-800 text-sm md:text-base mb-3 truncate w-full text-center"
+        className="font-bold text-slate-800 text-sm md:text-base mb-1 truncate w-full text-center"
         title={user.username}
       >
         {user.username}
       </span>
+      {user.timestamp && (
+        <span className="text-xs text-slate-500 mb-3 block w-full text-center">
+          {new Date(user.timestamp).toLocaleString()}
+        </span>
+      )}
 
       {/* Mobile view */}
       <div className="w-full flex flex-col gap-1.5 mt-auto md:hidden">

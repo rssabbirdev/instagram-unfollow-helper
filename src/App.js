@@ -120,10 +120,25 @@ function App() {
 
   // Helper to ensure clean links are always used
   const formatUser = (userOrUsername) => {
-    const rawUsername = typeof userOrUsername === "string" ? userOrUsername : userOrUsername?.username;
+    const isString = typeof userOrUsername === "string";
+    const rawUsername = isString ? userOrUsername : userOrUsername?.username;
     const username = (rawUsername || "").toString().trim().replace(/^@/, "");
+
+    let timestamp = isString ? null : userOrUsername?.timestamp;
+    if (timestamp) {
+      if (typeof timestamp === 'number') timestamp = new Date(timestamp).toISOString();
+      else if (typeof timestamp === 'string') {
+        const parsed = new Date(timestamp);
+        if (!Number.isNaN(parsed.valueOf())) timestamp = parsed.toISOString();
+        else timestamp = null;
+      } else {
+        timestamp = null;
+      }
+    }
+
     return {
       username,
+      timestamp,
       appLink: `instagram://user?username=${username}`,
       webLink: `https://www.instagram.com/${username}`
     };
@@ -231,6 +246,7 @@ function App() {
       worker.terminate();
 
       if (!workerResult?.ok) {
+        console.error('Worker parse error:', workerResult?.error, workerResult);
         throw new Error(workerResult?.error || "Failed to process folder.");
       }
 

@@ -15,6 +15,29 @@ const extractUsernameFromItem = (item) => {
   return null;
 };
 
+const extractTimestampFromItem = (item) => {
+  if (!item || typeof item !== "object") return null;
+  const rawTimestamp = item?.string_list_data?.[0]?.timestamp || item?.timestamp;
+  if (!rawTimestamp) return null;
+
+  if (typeof rawTimestamp === 'number') {
+    // Instagram export timestamps are typically seconds since epoch.
+    const ms = rawTimestamp < 1e12 ? rawTimestamp * 1000 : rawTimestamp;
+    return new Date(ms).toISOString();
+  }
+  if (typeof rawTimestamp === 'string' && /^[0-9]+$/.test(rawTimestamp)) {
+    const num = Number(rawTimestamp);
+    const ms = num < 1e12 ? num * 1000 : num;
+    return new Date(ms).toISOString();
+  }
+  if (typeof rawTimestamp === 'string') {
+    const parsed = new Date(rawTimestamp);
+    if (!Number.isNaN(parsed.valueOf())) return parsed.toISOString();
+  }
+
+  return null;
+};
+
 const buildUsernameListFromArray = (arr) => {
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -22,8 +45,11 @@ const buildUsernameListFromArray = (arr) => {
   for (const item of arr) {
     const username = normalizeUsername(extractUsernameFromItem(item));
     if (!username || seen.has(username)) continue;
+
+    const timestamp = extractTimestampFromItem(item);
+
     seen.add(username);
-    out.push(username);
+    out.push({ username, timestamp });
   }
   return out;
 };
@@ -51,19 +77,20 @@ self.onmessage = (event) => {
     const followersData = JSON.parse(followersRaw);
     const followingData = JSON.parse(followingRaw);
 
-    const followerUsernames = buildUsernameListFromArray(followersData);
-    const followingUsernames = buildUsernameListFromArray(
+    const followerUsers = buildUsernameListFromArray(followersData);
+    const followingUsers = buildUsernameListFromArray(
       followingData?.relationships_following
     );
 
-    const followerSet = new Set(followerUsernames);
-    const followingSet = new Set(followingUsernames);
+    const followerSet = new Set(followerUsers.map((u) => u.username));
+    const followingSet = new Set(followingUsers.map((u) => u.username));
     const unfollowedSet = new Set((unfollowedUsernames || []).map(normalizeUsername));
 
-    const fans = followerUsernames.filter((u) => !followingSet.has(u));
-    const notFollowingBack = followingUsernames.filter(
-      (u) => !followerSet.has(u) && !unfollowedSet.has(u)
+    const fans = followerUsers.filter((u) => !followingSet.has(u.username));
+    const notFollowingBack = followingUsers.filter(
+      (u) => !followerSet.has(u.username) && !unfollowedSet.has(u.username)
     );
+
 
     // Optional lists
     let closeFriends = [];
@@ -105,9 +132,10 @@ self.onmessage = (event) => {
       },
     });
   } catch (e) {
+    console.error('igParser.worker parsing error', e);
     self.postMessage({
       ok: false,
-      error: "Error parsing folder files. Ensure they are the correct JSON format.",
+      error: `Error parsing folder files. Ensure they are the correct JSON format: ${e?.message || e}`,
     });
   }
 };

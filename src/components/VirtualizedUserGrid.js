@@ -79,52 +79,50 @@ function VirtualizedUserGrid({ users, onMarkUnfollowed, mode = 'queue', canLoadM
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
-        <div
-          ref={containerRef}
-          className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 overflow-y-auto custom-scrollbar pr-2 content-start pb-4 flex-1 min-h-0"
-        >
-          {Array.from({ length: itemCount }).map((_, index) => {
-            const user = users[index];
-            if (!user) return null;
+      <div
+        ref={containerRef}
+        className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3 overflow-y-auto custom-scrollbar px-2 flex-1 min-h-0 content-start auto-rows-max"
+      >
+        {Array.from({ length: itemCount }).map((_, index) => {
+          const user = users[index];
+          if (!user) return null;
 
-            const isVisible = visibleItems.has(index);
+          const isVisible = visibleItems.has(index);
 
-            return (
-              <div
-                key={user.username}
-                ref={(el) => {
-                  if (el) itemRefs.current.set(index, el);
-                  else itemRefs.current.delete(index);
-                }}
-                data-index={index}
-                className={isVisible ? '' : 'opacity-0'}
-              >
-                {isVisible && (
-                  <UserCard
-                    user={user}
-                    onMarkUnfollowed={onMarkUnfollowed}
-                    mode={mode}
-                    apiService={apiService}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div
+              key={user.username}
+              ref={(el) => {
+                if (el) itemRefs.current.set(index, el);
+                else itemRefs.current.delete(index);
+              }}
+              data-index={index}
+              className={isVisible ? '' : 'opacity-0'}
+            >
+              {isVisible && (
+                <UserCard
+                  user={user}
+                  onMarkUnfollowed={onMarkUnfollowed}
+                  mode={mode}
+                  apiService={apiService}
+                />
+              )}
+            </div>
+          );
+        })}
+        
+        {canLoadMore && (
+          <div className="col-span-full flex justify-center py-0">
+            <button
+              type="button"
+              onClick={onLoadMore}
+              className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </div>
-
-      {canLoadMore && (
-        <div className="pt-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={onLoadMore}
-            className="w-full md:w-auto px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition"
-          >
-            Load more
-          </button>
-        </div>
-      )}
     </div>
   );
 }
