@@ -90,6 +90,7 @@ self.onmessage = (event) => {
     const notFollowingBack = followingUsers.filter(
       (u) => !followerSet.has(u.username) && !unfollowedSet.has(u.username)
     );
+    const mutualFollowers = followingUsers.filter((u) => followerSet.has(u.username));
 
 
     // Optional lists
@@ -126,6 +127,7 @@ self.onmessage = (event) => {
       result: {
         notFollowingBack,
         fans,
+        mutualFollowers,
         closeFriends,
         pendingRequests,
         recentlyUnfollowed,

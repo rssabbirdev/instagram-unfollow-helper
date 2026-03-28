@@ -22,6 +22,7 @@ function App() {
 
   // Additional insight lists (NOW persisted to localStorage)
   const [fansList, setFansList] = useState([]);
+  const [mutualList, setMutualList] = useState([]);
   const [closeFriendsList, setCloseFriendsList] = useState([]);
   const [pendingRequestsList, setPendingRequestsList] = useState([]);
   const [handledPendingRequests, setHandledPendingRequests] = useState([]);
@@ -53,6 +54,7 @@ function App() {
         queue: "instaQueue",
         unfollowed: "instaUnfollowed",
         fans: "instaFans",
+        mutual: "instaMutual",
         closeFriends: "instaCloseFriends",
         pendingRequests: "instaPendingRequests",
         handledPendingRequests: "instaHandledPendingRequests",
@@ -63,6 +65,7 @@ function App() {
         queue: [],
         unfollowed: [],
         fans: [],
+        mutual: [],
         closeFriends: [],
         pendingRequests: [],
         handledPendingRequests: [],
@@ -89,6 +92,7 @@ function App() {
         setQueueList(loadedData.queue);
         setUnfollowedList(loadedData.unfollowed);
         setFansList(loadedData.fans);
+        setMutualList(loadedData.mutual);
         setCloseFriendsList(loadedData.closeFriends);
         setPendingRequestsList(loadedData.pendingRequests);
         setHandledPendingRequests(loadedData.handledPendingRequests);
@@ -180,6 +184,7 @@ function App() {
       localStorage.setItem("instaQueue", JSON.stringify(queueList));
       localStorage.setItem("instaUnfollowed", JSON.stringify(unfollowedList));
       localStorage.setItem("instaFans", JSON.stringify(fansList));
+      localStorage.setItem("instaMutual", JSON.stringify(mutualList));
       localStorage.setItem("instaCloseFriends", JSON.stringify(closeFriendsList));
       localStorage.setItem("instaPendingRequests", JSON.stringify(pendingRequestsList));
       localStorage.setItem("instaHandledPendingRequests", JSON.stringify(handledPendingRequests));
@@ -189,7 +194,7 @@ function App() {
       console.error("Failed to save data to localStorage:", error);
       setStorageError("Unable to save data. Storage may be full.");
     }
-  }, [queueList, unfollowedList, fansList, closeFriendsList, pendingRequestsList, handledPendingRequests, recentlyUnfollowedList, isLoaded]);
+  }, [queueList, unfollowedList, fansList, mutualList, closeFriendsList, pendingRequestsList, handledPendingRequests, recentlyUnfollowedList, isLoaded]);
 
   const processFolderFiles = async (fileList) => {
     const asArray = fileList ? Array.from(fileList) : [];
@@ -250,11 +255,12 @@ function App() {
         throw new Error(workerResult?.error || "Failed to process folder.");
       }
 
-      const { notFollowingBack, fans, closeFriends, pendingRequests, recentlyUnfollowed } =
+      const { notFollowingBack, fans, mutualFollowers, closeFriends, pendingRequests, recentlyUnfollowed } =
         workerResult.result || {};
 
       setQueueList((notFollowingBack || []).map(formatUser));
       setFansList((fans || []).map(formatUser));
+      setMutualList((mutualFollowers || []).map(formatUser));
       setCloseFriendsList((closeFriends || []).map(formatUser));
       setPendingRequestsList((pendingRequests || []).map(formatUser));
       setRecentlyUnfollowedList((recentlyUnfollowed || []).map(formatUser));
@@ -326,6 +332,7 @@ function App() {
 
     setActiveTab('not_following_back');
     setFansList([]);
+    setMutualList([]);
     setCloseFriendsList([]);
     setPendingRequestsList([]);
     setHandledPendingRequests([]);
@@ -370,8 +377,7 @@ function App() {
               onRestoreToQueue={restoreToQueue}
               activeTab={activeTab}
               onChangeTab={setActiveTab}
-              fansList={fansList}
-              closeFriendsList={closeFriendsList}
+              fansList={fansList}              mutualList={mutualList}              closeFriendsList={closeFriendsList}
               pendingRequestsList={pendingRequestsList}
               handledPendingRequests={handledPendingRequests}
               onMarkAsHandled={markAsHandled}

@@ -35,6 +35,7 @@ function ResultsView({
   activeTab,
   onChangeTab,
   fansList,
+  mutualList,
   closeFriendsList,
   pendingRequestsList,
   handledPendingRequests,
@@ -45,6 +46,7 @@ function ResultsView({
 }) {
   const tabs = [
     { id: 'not_following_back', label: 'Not Following Back' },
+    { id: 'mutuals', label: 'Mutuals' },
     { id: 'fans', label: 'Fans' },
     { id: 'close_friends', label: 'Close Friends' },
     { id: 'pending_requests', label: 'Pending Requests' },
@@ -62,6 +64,8 @@ function ResultsView({
     switch (activeTab) {
       case 'fans':
         return { title: 'Fans', count: fansList.length, list: fansList };
+      case 'mutuals':
+        return { title: 'Mutuals', count: mutualList.length, list: mutualList };
       case 'close_friends':
         return { title: 'Close Friends', count: closeFriendsList.length, list: closeFriendsList };
       case 'pending_requests':

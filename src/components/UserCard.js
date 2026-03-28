@@ -4,7 +4,7 @@ function UserCard({ user, onMarkUnfollowed, mode = 'queue' }) {
   const canMarkUnfollowed = typeof onMarkUnfollowed === 'function' && mode === 'queue';
 
   // Fallback placeholder avatar until real API photo resolution is implemented
-  const avatarUrl = `https://ui-avatars.com/api/?name=${user.username}&background=random&color=fff&size=128`;
+  const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
 
   const handleCardClick = (e) => {
     // Prevent card click when clicking on buttons/links
@@ -20,6 +20,24 @@ function UserCard({ user, onMarkUnfollowed, mode = 'queue' }) {
 
   const handleWebLinkClick = () => {
     if (canMarkUnfollowed) onMarkUnfollowed(user.username);
+  };
+
+  // Function to get relative time string
+  const getRelativeTime = (timestamp) => {
+    if (!timestamp) return '';
+    const now = new Date();
+    const timeDiff = now - new Date(timestamp);
+    const seconds = Math.floor(timeDiff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+
+    if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
   };
 
   return (
@@ -42,7 +60,7 @@ function UserCard({ user, onMarkUnfollowed, mode = 'queue' }) {
       </span>
       {user.timestamp && (
         <span className="text-xs text-slate-500 mb-3 block w-full text-center">
-          {new Date(user.timestamp).toLocaleString()}
+          {getRelativeTime(user.timestamp)}
         </span>
       )}
 
